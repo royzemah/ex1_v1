@@ -71,10 +71,13 @@ import java_cup.runtime.*;
 /***********************/
 /* MACRO DECLARATIONS */
 /***********************/
-LineTerminator	= \r|\n|\r\n
-WhiteSpace		= {LineTerminator} | [ \t\f]
-INTEGER			= 0 | [1-9][0-9]*
-ID				= [a-z]+
+WS        = [ \t\r\n]+
+LETTER    = [A-Za-z]
+DIGIT     = [0-9]
+ID        = {LETTER}({LETTER}|{DIGIT})*
+INT_OK    = 0|[1-9]{DIGIT}*
+STR_OK    = \"[A-Za-z]*\"
+%state COMMENT
 
 /******************************/
 /* DOLLAR DOLLAR - DON'T TOUCH! */
@@ -94,14 +97,79 @@ ID				= [a-z]+
 
 <YYINITIAL> {
 
-"+"					{ return symbol(TokenNames.PLUS);}
-"-"					{ return symbol(TokenNames.MINUS);}
-"PPP"				{ return symbol(TokenNames.TIMES);}
-"/"					{ return symbol(TokenNames.DIVIDE);}
-"("					{ return symbol(TokenNames.LPAREN);}
-")"					{ return symbol(TokenNames.RPAREN);}
-{INTEGER}			{ return symbol(TokenNames.NUMBER, Integer.valueOf(yytext()));}
-{ID}				{ return symbol(TokenNames.ID,     yytext());}
-{WhiteSpace}		{ /* just skip what was found, do nothing */ }
-<<EOF>>				{ return symbol(TokenNames.EOF);}
-}
+/* 1) Whitespace: skip */
+{WS}                           { /* skip */ }
+
+/* 2) Comments: skip; unclosed block => ERROR */
+/* line comments: skip */
+"//".*                         { /* skip */ }
+
+/* start of block comment -> go to COMMENT state */
+"/*"                           { yybegin(COMMENT); }
+
+
+/* 3) Keywords (before ID) */
+"int"                          { return symbol(TokenNames.TYPE_INT); }
+"string"                       { return symbol(TokenNames.TYPE_STRING); }
+"void"                         { return symbol(TokenNames.TYPE_VOID); }
+"if"                           { return symbol(TokenNames.IF); }
+"else"                         { return symbol(TokenNames.ELSE); }
+"while"                        { return symbol(TokenNames.WHILE); }
+"return"                       { return symbol(TokenNames.RETURN); }
+"class"                        { return symbol(TokenNames.CLASS); }
+"extends"                      { return symbol(TokenNames.EXTENDS); }
+"new"                          { return symbol(TokenNames.NEW); }
+"nil"                          { return symbol(TokenNames.NIL); }
+
+/* 4) Operators / punctuation */
+":="                           { return symbol(TokenNames.ASSIGN); }  /* if your PDF says assign is '=', swap with EQ */
+"="                            { return symbol(TokenNames.EQ); }
+"<"                            { return symbol(TokenNames.LT); }
+">"                            { return symbol(TokenNames.GT); }
+"("                            { return symbol(TokenNames.LPAREN); }
+")"                            { return symbol(TokenNames.RPAREN); }
+"["                            { return symbol(TokenNames.LBRACK); }
+"]"                            { return symbol(TokenNames.RBRACK); }
+"{"                            { return symbol(TokenNames.LBRACE); }
+"}"                            { return symbol(TokenNames.RBRACE); }
+"+"                            { return symbol(TokenNames.PLUS); }
+"-"                            { return symbol(TokenNames.MINUS); }
+"*"                            { return symbol(TokenNames.TIMES); }
+"/"                            { return symbol(TokenNames.DIVIDE); }
+","                            { return symbol(TokenNames.COMMA); }
+"."                            { return symbol(TokenNames.DOT); }
+";"                            { return symbol(TokenNames.SEMICOLON); }
+
+/* 5) Strings: one valid rule + one generic error for quotes */
+{STR_OK}                       {
+                                  String s = yytext();
+                                  return symbol(TokenNames.STRING, s.substring(1, s.length()-1));
+                               }
+\"[^\"\r\n]*                   { throw new RuntimeException("lex"); }
+
+/* 6) Integers: 0..32767, no leading zeros except "0" */
+{INT_OK}                       {
+                                  String t = yytext();
+                                  if (t.length() > 5) throw new RuntimeException("lex");
+                                  int v = Integer.parseInt(t);
+                                  if (v > 32767) throw new RuntimeException("lex");
+                                  return symbol(TokenNames.INT, v);
+                               }
+
+/* 7) Identifiers */
+{ID}                           { return symbol(TokenNames.ID, yytext()); }
+
+/* 9) Anything else => unified lexical error */
+.                              { throw new RuntimeException("lex"); }
+}  /* end of YYINITIAL */
+
+/* -------- COMMENT state -------- */
+<COMMENT> "*/"                 { yybegin(YYINITIAL); }       /* end of block comment */
+<COMMENT> <<EOF>>              { throw new RuntimeException("lex"); }  /* unclosed */
+<COMMENT> [^]                  { /* skip inside block comment */ }
+
+/* catch-all fallback for anything outside states */
+[^] { throw new RuntimeException("lex"); }
+
+/* EOF */
+<<EOF>> { return symbol(TokenNames.EOF); }

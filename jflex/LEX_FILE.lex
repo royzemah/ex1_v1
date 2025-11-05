@@ -75,7 +75,8 @@ WS        = [ \t\n]+
 LETTER    = [A-Za-z]
 DIGIT     = [0-9]
 ID        = {LETTER}({LETTER}|{DIGIT})*
-INT_OK    = 0|[1-9]{DIGIT}*
+ZERO      = 0
+INT_OK    = ZERO|[1-9]{DIGIT}*
 STR_OK    = \"[A-Za-z]*\"
 COMMENT1_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t]
 COMMENT2_CHAR = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n]
@@ -101,6 +102,7 @@ COMMENT2_CHAR = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n]
   "//"{COMMENT1_CHAR}*\n      { /* skip line comment */ }
 //  "//"{COMMENT1_CHAR}*        { /* skip line comment ends with EOF */ }//remove?
 /* Type 2 Comments: block comment */
+  "/*"                         { throw new RuntimeException("lex"); } //An unclosed Type-2 comment
   "/*"({COMMENT2_CHAR})*"*/"   { /* skip block comment */ }
 //  "/*"({COMMENT2_CHAR})*       {throw new RuntimeException("lex"); }//remove?
 

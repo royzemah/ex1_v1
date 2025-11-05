@@ -51,6 +51,7 @@ public class Main
                     case TokenNames.LPAREN:     name = "LPAREN"; break;
                     case TokenNames.RPAREN:     name = "RPAREN"; break;
                     case TokenNames.INT:        name = "INT"; break;
+                    case TokenNames.STRING:     name = "STRING"; break;
                     case TokenNames.ID:         name = "ID"; break;
 
                     case TokenNames.TYPE_INT:    name = "TYPE_INT"; break;
@@ -85,12 +86,14 @@ public class Main
 				/************************/
 				/* [6] Print to console */
 				/************************/
-
+                /* DEBUG PRINTS
                 if (s.value == null) {
                     System.out.printf("%s[%d,%d]%n", name, line, col);
                 } else {
                     System.out.printf("%s(%s)[%d,%d]%n", name, s.value, line, col);
                 }
+                */
+
 				
 				/*********************/
 				/* [7] Print to file */

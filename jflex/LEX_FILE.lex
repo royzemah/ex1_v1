@@ -155,7 +155,7 @@ COMMENT2_CHAR = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n]
                                   return symbol(TokenNames.INT, v);
                                }
 
-/* Identifiers */
+/* Identifier */
 {ID}                           { return symbol(TokenNames.ID, yytext()); }
 
 /* EOF */

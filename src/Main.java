@@ -117,23 +117,12 @@ public class Main
 			fileWriter.close();
     	}
 
-        catch (Exception e)
+        catch (Throwable e)
         {
-            // One unified error line per the PDF
-            try {
-                if (fileWriter != null) {
-                    fileWriter.println("ERROR");
-                    fileWriter.close();
-                } else {
-                    System.out.println("ERROR");
-                }
-            } catch (Exception ignore) {}
+            fileWriter.println("ERROR");
+            System.out.println("ERROR");
         }
-        finally
-        {
-            try { if (fileReader != null) fileReader.close(); } catch (Exception ignore) {}
-            // fileWriter already closed above on success/error
-        }
+
     }
 	}
 

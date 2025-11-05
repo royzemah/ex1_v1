@@ -77,9 +77,8 @@ DIGIT     = [0-9]
 ID        = {LETTER}({LETTER}|{DIGIT})*
 INT_OK    = 0|[1-9]{DIGIT}*
 STR_OK    = \"[A-Za-z]*\"
-COMMENT_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t]
-//COMMENT_CHAR_NL_NO_STAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-/\.; \t\n]
-//STAR_THEN_NOT_SLASH  = \*+([^/]|$)
+COMMENT1_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t]
+COMMENT2_CHAR = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n]
 
 /******************************/
 /* DOLLAR DOLLAR - DON'T TOUCH! */
@@ -99,11 +98,12 @@ COMMENT_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t]
 
 <YYINITIAL> {
 // Type 1 Comments: line comments
-  "//"{COMMENT_CHAR}*\n      { /* skip line comment */ }
-  "//"{COMMENT_CHAR}* { System.out.println("ERROR"); return symbol(TokenNames.EOF); }
+  "//"{COMMENT1_CHAR}*\n      { /* skip line comment */ }
+//  "//"{COMMENT1_CHAR}*        { /* skip line comment ends with EOF */ }//remove?
 /* Type 2 Comments: block comment */
-  "/*"([^*]|\*+[^*/])*\*+"/"   { /* skip block comment */ }
-  "/*"([^*]|\*+[^*/])*         { System.out.println("ERROR"); return symbol(TokenNames.EOF); }
+  "/*"({COMMENT2_CHAR})*"*/"   { /* skip block comment */ }
+//  "/*"({COMMENT2_CHAR})*       {throw new RuntimeException("lex"); }//remove?
+
 
 /*  Whitespace: skip */
 {WS}                           { /* skip */ }
@@ -123,7 +123,7 @@ COMMENT_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t]
 "nil"                          { return symbol(TokenNames.NIL); }
 
 /* Operators / punctuation */
-":="                           { return symbol(TokenNames.ASSIGN); }  /* if your PDF says assign is '=', swap with EQ */
+":="                           { return symbol(TokenNames.ASSIGN); }
 "="                            { return symbol(TokenNames.EQ); }
 "<"                            { return symbol(TokenNames.LT); }
 ">"                            { return symbol(TokenNames.GT); }
@@ -146,7 +146,6 @@ COMMENT_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t]
                                   String s = yytext();
                                   return symbol(TokenNames.STRING, s.substring(1, s.length()-1));
                                }
-\"[^\"\n]*                  { throw new RuntimeException("lex"); }
 
 /* Integers: 0..32767, no leading zeros except "0" */
 {INT_OK}                       {
@@ -162,8 +161,4 @@ COMMENT_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t]
 /* EOF */
 <<EOF>> { return symbol(TokenNames.EOF); }
 
-/* Anything else => unified lexical error */
-[^]                              { throw new RuntimeException("lex"); }
 }  /* end of YYINITIAL */
-
-

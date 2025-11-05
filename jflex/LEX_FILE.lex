@@ -71,13 +71,15 @@ import java_cup.runtime.*;
 /***********************/
 /* MACRO DECLARATIONS */
 /***********************/
-WS        = [ \t\r\n]+
+WS        = [ \t\n]+
 LETTER    = [A-Za-z]
 DIGIT     = [0-9]
 ID        = {LETTER}({LETTER}|{DIGIT})*
 INT_OK    = 0|[1-9]{DIGIT}*
 STR_OK    = \"[A-Za-z]*\"
-%state COMMENT
+COMMENT_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t]
+//COMMENT_CHAR_NL_NO_STAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-/\.; \t\n]
+//STAR_THEN_NOT_SLASH  = \*+([^/]|$)
 
 /******************************/
 /* DOLLAR DOLLAR - DON'T TOUCH! */
@@ -96,19 +98,18 @@ STR_OK    = \"[A-Za-z]*\"
 /**************************************************************/
 
 <YYINITIAL> {
+// Type 1 Comments: line comments
+  "//"{COMMENT_CHAR}*\n      { /* skip line comment */ }
+  "//"{COMMENT_CHAR}* { System.out.println("ERROR"); return symbol(TokenNames.EOF); }
+/* Type 2 Comments: block comment */
+  "/*"([^*]|\*+[^*/])*\*+"/"   { /* skip block comment */ }
+  "/*"([^*]|\*+[^*/])*         { System.out.println("ERROR"); return symbol(TokenNames.EOF); }
 
-/* 1) Whitespace: skip */
+/*  Whitespace: skip */
 {WS}                           { /* skip */ }
 
-/* 2) Comments: skip; unclosed block => ERROR */
-/* line comments: skip */
-"//".*                         { /* skip */ }
 
-/* start of block comment -> go to COMMENT state */
-"/*"                           { yybegin(COMMENT); }
-
-
-/* 3) Keywords (before ID) */
+/*  Keywords (before ID) */
 "int"                          { return symbol(TokenNames.TYPE_INT); }
 "string"                       { return symbol(TokenNames.TYPE_STRING); }
 "void"                         { return symbol(TokenNames.TYPE_VOID); }
@@ -121,7 +122,7 @@ STR_OK    = \"[A-Za-z]*\"
 "new"                          { return symbol(TokenNames.NEW); }
 "nil"                          { return symbol(TokenNames.NIL); }
 
-/* 4) Operators / punctuation */
+/* Operators / punctuation */
 ":="                           { return symbol(TokenNames.ASSIGN); }  /* if your PDF says assign is '=', swap with EQ */
 "="                            { return symbol(TokenNames.EQ); }
 "<"                            { return symbol(TokenNames.LT); }
@@ -140,36 +141,29 @@ STR_OK    = \"[A-Za-z]*\"
 "."                            { return symbol(TokenNames.DOT); }
 ";"                            { return symbol(TokenNames.SEMICOLON); }
 
-/* 5) Strings: one valid rule + one generic error for quotes */
+/* Strings: one valid rule + one generic error for quotes */
 {STR_OK}                       {
                                   String s = yytext();
                                   return symbol(TokenNames.STRING, s.substring(1, s.length()-1));
                                }
-\"[^\"\r\n]*                   { throw new RuntimeException("lex"); }
+\"[^\"\n]*                  { throw new RuntimeException("lex"); }
 
-/* 6) Integers: 0..32767, no leading zeros except "0" */
+/* Integers: 0..32767, no leading zeros except "0" */
 {INT_OK}                       {
                                   String t = yytext();
-                                  if (t.length() > 5) throw new RuntimeException("lex");
                                   int v = Integer.parseInt(t);
                                   if (v > 32767) throw new RuntimeException("lex");
                                   return symbol(TokenNames.INT, v);
                                }
 
-/* 7) Identifiers */
+/* Identifiers */
 {ID}                           { return symbol(TokenNames.ID, yytext()); }
-
-/* 9) Anything else => unified lexical error */
-.                              { throw new RuntimeException("lex"); }
-}  /* end of YYINITIAL */
-
-/* -------- COMMENT state -------- */
-<COMMENT> "*/"                 { yybegin(YYINITIAL); }       /* end of block comment */
-<COMMENT> <<EOF>>              { throw new RuntimeException("lex"); }  /* unclosed */
-<COMMENT> [^]                  { /* skip inside block comment */ }
-
-/* catch-all fallback for anything outside states */
-[^] { throw new RuntimeException("lex"); }
 
 /* EOF */
 <<EOF>> { return symbol(TokenNames.EOF); }
+
+/* Anything else => unified lexical error */
+[^]                              { throw new RuntimeException("lex"); }
+}  /* end of YYINITIAL */
+
+

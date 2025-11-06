@@ -53,7 +53,7 @@ public class Main
                     case TokenNames.INT:        name = "INT"; break;
                     case TokenNames.STRING:     name = "STRING"; break;
                     case TokenNames.ID:         name = "ID"; break;
-
+                    case TokenNames.ARRAY:     name = "ARRAY"; break;
                     case TokenNames.TYPE_INT:    name = "TYPE_INT"; break;
                     case TokenNames.TYPE_STRING: name = "TYPE_STRING"; break;
                     case TokenNames.TYPE_VOID:   name = "TYPE_VOID"; break;

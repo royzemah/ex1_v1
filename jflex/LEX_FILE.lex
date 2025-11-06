@@ -121,6 +121,7 @@ COMMENT2_CHAR = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n]
 "extends"                      { return symbol(TokenNames.EXTENDS); }
 "new"                          { return symbol(TokenNames.NEW); }
 "nil"                          { return symbol(TokenNames.NIL); }
+"array"                        { return symbol(TokenNames.ARRAY); }
 
 /* Operators / punctuation */
 ":="                           { return symbol(TokenNames.ASSIGN); }

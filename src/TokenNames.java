@@ -35,6 +35,8 @@ public interface TokenNames {
     public static final int COMMA     = 28;  // ,
     public static final int DOT       = 29;  // .
     public static final int SEMICOLON = 30;  // ;
+
     public static final int STRING = 31;
+    public static final int ARRAY = 32;
 
 }

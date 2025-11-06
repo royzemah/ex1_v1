@@ -35,7 +35,7 @@ public class Main
             /* [4] Read next token */
             /***********************/
             s = l.next_token();
-
+            boolean first = true;
             /********************************/
             /* [5] Main reading tokens loop */
             /********************************/
@@ -98,11 +98,17 @@ public class Main
                 /*********************/
                 /* [7] Print to file */
                 /*********************/
-                if (s.value == null) {
-                    fileWriter.printf("%s[%d,%d]%n", name, line, col);
-                } else {
-                    fileWriter.printf("%s(%s)[%d,%d]%n", name, s.value, line, col);
+                if (!first) {
+                    fileWriter.print('\n');
                 }
+
+                if (s.value == null) {
+                    fileWriter.printf("%s[%d,%d]", name, line, col);
+                } else {
+                    fileWriter.printf("%s(%s)[%d,%d]", name, s.value, line, col);
+                }
+
+                first = false;
                 /***********************/
                 /* [8] Read next token */
                 /***********************/

@@ -145,7 +145,7 @@ COMMENT2_CHAR = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n]
 /* Strings:*/
 {STR_OK}                       {
                                   String s = yytext();
-                                  return symbol(TokenNames.STRING, s.substring(1, s.length()-1));
+                                  return symbol(TokenNames.STRING, s);
                                }
 
 /* Integers: 0..32767, no leading zeros except "0" */

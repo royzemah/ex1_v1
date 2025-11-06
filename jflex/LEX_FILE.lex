@@ -79,7 +79,8 @@ ZERO      = 0
 INT_OK    = {ZERO}|[1-9]{DIGIT}*
 STR_OK    = \"[A-Za-z]*\"
 COMMENT1_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t]
-COMMENT2_CHAR = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n]
+COMMENT2_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n]
+%state COMMENT2
 
 /******************************/
 /* DOLLAR DOLLAR - DON'T TOUCH! */
@@ -100,14 +101,11 @@ COMMENT2_CHAR = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n]
 <YYINITIAL> {
 // Type 1 Comments: line comments
   "//"{COMMENT1_CHAR}*\n      { /* skip line comment */ }
-/* Type 2 Comments: block comment */
-  "/*"                         { throw new RuntimeException("lex"); } //An unclosed Type-2 comment
-  "/*"({COMMENT2_CHAR})*"*/"   { /* skip block comment */ }
-
+/* Type 2 Comments: block comment(state def at the bottom) */
+  "/*" { yybegin(COMMENT2); }
 
 /*  Whitespace: */
 {WS}                           { /* skip */ }
-
 
 /*  Keywords (before ID) */
 "int"                          { return symbol(TokenNames.TYPE_INT); }
@@ -149,6 +147,7 @@ COMMENT2_CHAR = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n]
                                }
 
 /* Integers: 0..32767, no leading zeros except "0" */
+0{DIGIT}+                       { throw new RuntimeException("lex"); }
 {INT_OK}                       {
                                   String t = yytext();
                                   int v = Integer.parseInt(t);
@@ -163,3 +162,9 @@ COMMENT2_CHAR = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n]
 <<EOF>> { return symbol(TokenNames.EOF); }
 
 }  /* end of YYINITIAL */
+
+<COMMENT2> {
+  "*/"             { yybegin(YYINITIAL); }
+  {COMMENT2_CHAR}  { /* skip content */ }
+  <<EOF>>          { throw new RuntimeException("lex"); }
+}

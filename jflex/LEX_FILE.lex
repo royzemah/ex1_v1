@@ -71,15 +71,15 @@ import java_cup.runtime.*;
 /***********************/
 /* MACRO DECLARATIONS */
 /***********************/
-WS        = [ \t\n]+
+WS        = [ \t\n\r]+
 LETTER    = [A-Za-z]
 DIGIT     = [0-9]
 ID        = {LETTER}({LETTER}|{DIGIT})*
 ZERO      = 0
 INT_OK    = {ZERO}|[1-9]{DIGIT}*
 STR_OK    = \"[A-Za-z]*\"
-COMMENT1_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t]
-COMMENT2_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n]
+COMMENT1_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\r]
+COMMENT2_CHAR    = [A-Za-z0-9()\[\]\{\}\?\!\+\-\*/\.; \t\n\r]
 %state COMMENT2
 
 /******************************/
